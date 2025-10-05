@@ -25,3 +25,9 @@ This project contains:
 Notes:
 - Adjust TOTAL_MESSAGE environment present in docker compose file to 50000000 for full dataset (may take long).
 
+Required Version:
+
+- Go version: 1.24.1
+- Docker >= 24.0
+- Docker Compose >= 2.20
+
