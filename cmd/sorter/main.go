@@ -12,6 +12,7 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// Record represents one data entry from Kafka
 type Record struct {
 	ID        int
 	Name      string
@@ -20,6 +21,7 @@ type Record struct {
 	Raw       string
 }
 
+// Record represents one data entry from Kafka
 func parseRecord(line string) Record {
 	parts := strings.Split(line, ",")
 	id, _ := strconv.Atoi(parts[0])
@@ -28,7 +30,8 @@ func parseRecord(line string) Record {
 
 func main() {
 
-	brokers := []string{os.Getenv("KAFKA_ENDPOINT")}
+	brokers := []string{os.Getenv("KAFKA_ENDPOINT")}    // Kafka broker(s)
+	// Topic names for source and sorted outputs
 	sourceTopic := "source"
 	idTopic := "id"
 	nameTopic := "name"
@@ -39,13 +42,13 @@ func main() {
 	config.Consumer.Return.Errors = true
 	config.Version = sarama.V2_1_0_0
 
-	consumer, err := sarama.NewConsumer(brokers, config)
+	consumer, err := sarama.NewConsumer(brokers, config)    // create a consumer instance
 	if err != nil {
 		panic(err)
 	}
 	defer consumer.Close()
 
-	partConsumer, err := consumer.ConsumePartition(sourceTopic, 0, sarama.OffsetOldest)
+	partConsumer, err := consumer.ConsumePartition(sourceTopic, 0, sarama.OffsetOldest)     //consume message from the 0 partition
 	if err != nil {
 		panic(err)
 	}
@@ -54,6 +57,8 @@ func main() {
 	var records []Record
 	start := time.Now()
 	fmt.Println("Consuming records...")
+
+	//main consuming logic
 consumeLoop:
 	for {
 		select {
@@ -71,6 +76,8 @@ consumeLoop:
 	produceSorted(records, nameTopic, func(i, j int) bool { return records[i].Name < records[j].Name }, brokers)
 	produceSorted(records, continentTopic, func(i, j int) bool { return records[i].Continent < records[j].Continent }, brokers)
 }
+
+//again produce sorted message to topic on kafka
 
 func produceSorted(records []Record, topic string, less func(i, j int) bool, brokers []string) {
 	sort.Slice(records, less)

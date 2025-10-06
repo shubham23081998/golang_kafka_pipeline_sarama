@@ -33,13 +33,13 @@ func main() {
 	topic := "source"
 
 	config := sarama.NewConfig()
-	config.Producer.RequiredAcks = sarama.WaitForLocal
-	config.Producer.Return.Successes = true
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.RequiredAcks = sarama.WaitForLocal  // The producer waits for the leader broker to acknowledge the message
+	config.Producer.Return.Successes = true             // The producer reports when a message is successfully sent.
+	config.Producer.Partitioner = sarama.NewRandomPartitioner  // Randomly sends messages to any partition (helps load balancing).
 
-	producer, err := sarama.NewSyncProducer(brokers, config)
+	producer, err := sarama.NewSyncProducer(brokers, config)    //Creates a synchronous Kafka producer
 	if err != nil {
-		log.Printf("issue pakda gya %v \n", err)
+		log.Printf("Err while creating producer instance %v \n", err)
 	}
 	defer producer.Close()
 
@@ -48,7 +48,7 @@ func main() {
 	start := time.Now()
 
 	for i := 0; i < total; i++ {
-		record := fmt.Sprintf("%d,%s,%s,%s",
+		record := fmt.Sprintf("%d,%s,%s,%s",  // create a csv string
 			rand.Int31(),
 			randomString(rand.Intn(6)+10),
 			randomAddress(),
@@ -58,7 +58,7 @@ func main() {
 			Topic: topic,
 			Value: sarama.StringEncoder(record),
 		}
-		_, _, err := producer.SendMessage(msg)
+		_, _, err := producer.SendMessage(msg)    //send message 
 		fmt.Printf("msg %v : %v\n", i, msg)
 		if err != nil {
 			fmt.Println("Failed to produce message:", err)
